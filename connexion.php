@@ -13,27 +13,27 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST["name"];
     $email = htmlspecialchars($_POST["email"]);
     $password = htmlspecialchars($_POST["password"]);
+    
+    // Hashage du mot de passe pour la comparaison avec celui stocké dans la base de données
+    $hashed_password = md5($password);  // Utilisez md5 seulement si vous hachez le mot de passe avec md5 dans l'inscription
 
-    // Validation des champs (déjà gérée plus haut)
-    if (!$nameErr && !$emailErr && !$passwordErr) {
-        // Hachage du mot de passe pour la sécurité
-       // $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-       $hashed_password = md5($password);
+    // Requête pour vérifier si l'utilisateur existe
+    $sql = "SELECT * FROM users WHERE email = '$email' AND mdp = '$hashed_password'";
+    $result = $conn->query($sql);
 
-        // Requête d'insertion SQL
-        $sql = "INSERT INTO users (id, email, mdp, nom) VALUES (NULL, '$email', '$hashed_password', '$name')";
-
-        if ($conn->query($sql) === TRUE) {
-            echo "<p style='color: green;'>Registration successful!</p>";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+    if ($result->num_rows > 0) {
+        // L'utilisateur existe
+        echo "<p style='color: green;'>Connexion réussie !</p>";
+        // Vous pouvez démarrer une session ici ou rediriger l'utilisateur vers une autre page
+    } else {
+        // L'utilisateur n'existe pas ou les informations sont incorrectes
+        echo "<p style='color: red;'>Email ou mot de passe incorrect.</p>";
     }
 }
 
 // Fermer la connexion
 $conn->close();
 ?>
+
